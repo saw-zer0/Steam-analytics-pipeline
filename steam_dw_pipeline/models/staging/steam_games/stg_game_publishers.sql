@@ -2,12 +2,14 @@ with values as (
     select
         app_id,
         trim(publisher_name) as publisher_name
-    from {{ ref('stg_games') }}
+    from {{ ref('raw_games') }}
     cross join lateral regexp_split_to_table(coalesce(publishers, ''), '\s*,\s*') as publisher_name
 )
 
 select distinct
     app_id,
-    md5(lower(publisher_name)) as publisher_id
+    publishers.publisher_id
 from values
-where publisher_name <> ''
+join {{ ref('stg_publishers') }} as publishers
+    on lower(publishers.publisher_name) = lower(values.publisher_name)
+where values.publisher_name <> ''

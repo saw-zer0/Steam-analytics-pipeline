@@ -1,9 +1,9 @@
 with language_values as (
     select supported_languages as languages
-    from {{ ref('stg_games') }}
+    from {{ ref('raw_games') }}
     union all
     select full_audio_languages as languages
-    from {{ ref('stg_games') }}
+    from {{ ref('raw_games') }}
 ),
 cleaned_languages as (
     select
@@ -16,7 +16,6 @@ cleaned_languages as (
 )
 
 select
-    md5(lower(language_name)) as language_id,
     language_name
 from cleaned_languages
 where language_name <> ''

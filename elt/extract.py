@@ -8,7 +8,7 @@ from psycopg2.extras import execute_batch
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-CSV_PATH = PROJECT_ROOT / "temp.csv"
+CSV_PATH = PROJECT_ROOT / "data/raw" / "games.csv"
 BATCH_SIZE = 1_000
 
 CSV_COLUMNS = (
@@ -105,9 +105,9 @@ INSERT_SQL = f"""
 """
 
 
-def get_connection():
+def get_connection()->psycopg2.extensions.connection:
     load_dotenv(PROJECT_ROOT / ".env")
-    required_settings = {
+    required_settings: dict[str, str | None] = {
         "host": os.getenv("PGHOST", "localhost"),
         "port": os.getenv("PGPORT", "5432"),
         "dbname": os.getenv("PGDATABASE"),
@@ -122,32 +122,42 @@ def get_connection():
             "Missing PostgreSQL environment variables: "
             + ", ".join(missing_settings)
         )
-    return psycopg2.connect(**required_settings)
+
+    try:
+        return psycopg2.connect(**required_settings)
+    except psycopg2.Error as exc:
+        raise RuntimeError(f"Failed to connect to PostgreSQL: {exc}") from exc
 
 
 def load_csv_in_batches() -> int:
     total_rows = 0
-    with get_connection() as connection:
-        with connection.cursor() as cursor:
-            for chunk in pd.read_csv(CSV_PATH, chunksize=BATCH_SIZE, engine='python'):
-                if tuple(chunk.columns) != CSV_COLUMNS:
-                    raise ValueError("CSV columns do not match the expected schema")
+    try:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                for chunk in pd.read_csv(CSV_PATH, chunksize=BATCH_SIZE, engine='python'):
+                    if tuple(chunk.columns) != CSV_COLUMNS:
+                        raise ValueError("CSV columns do not match the expected schema")
 
-                rows = chunk.astype(object).where(pd.notna(chunk), None)
-                execute_batch(
-                    cursor,
-                    INSERT_SQL,
-                    rows.itertuples(index=False, name=None),
-                    page_size=BATCH_SIZE,
-                )
-                total_rows += len(chunk)
-                print(f"Loaded {total_rows} rows")
+                    rows = chunk.astype(object).where(pd.notna(chunk), None)
+                    execute_batch(
+                        cursor,
+                        INSERT_SQL,
+                        rows.itertuples(index=False, name=None),
+                        page_size=BATCH_SIZE,
+                    )
+                    total_rows += len(chunk)
+                    print(f"Loaded {total_rows} rows")
+    except psycopg2.Error as exc:
+        raise RuntimeError(f"Database error while loading CSV: {exc}") from exc
     return total_rows
 
 
 def main() -> None:
-    loaded_rows = load_csv_in_batches()
-    print(f"Finished loading {loaded_rows} rows into public.steam_games")
+    try:
+        loaded_rows = load_csv_in_batches()
+        print(f"Finished loading {loaded_rows} rows into public.steam_games")
+    except (RuntimeError, ValueError) as exc:
+        print(f"Error: {exc}")
 
 
 if __name__ == "__main__":

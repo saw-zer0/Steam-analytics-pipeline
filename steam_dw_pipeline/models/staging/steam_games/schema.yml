@@ -1,14 +1,52 @@
 version: 2
 
 models:
-  - name: stg_games
-    description: Normalized game-level records from the raw Steam games table.
+  - name: raw_games
+    description: Faithful projection of the raw Steam games source, including denormalized attributes.
     columns:
       - name: app_id
         description: Steam application identifier.
         data_tests:
           - not_null
           - unique
+
+  - name: stg_games
+    description: Lean game-level records with normalized date and price types.
+    columns:
+      - name: game_id
+        description: Sequence-backed staging identifier for the game.
+        data_tests:
+          - not_null
+          - unique
+      - name: app_id
+        description: Steam application identifier.
+        data_tests:
+          - not_null
+          - unique
+      - name: estimated_owners_id
+        description: Foreign key to the estimated owner tier for the game.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_estimated_owners')
+                field: estimated_owners_id
+
+  - name: stg_estimated_owners
+    description: Parsed estimated owner tiers with numeric bounds and labels.
+    columns:
+      - name: estimated_owners_id
+        data_tests:
+          - not_null
+          - unique
+      - name: min_owners
+        data_tests:
+          - not_null
+      - name: max_owners
+        data_tests:
+          - not_null
+      - name: estimated_owners_label
+        data_tests:
+          - not_null
 
   - name: stg_languages
     description: Deduplicated language entities from supported and full-audio language lists.

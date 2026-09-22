@@ -2,7 +2,7 @@ with language_values as (
     select
         app_id,
         regexp_replace(coalesce(full_audio_languages, ''), '^\[|\]$', '', 'g') as languages
-    from {{ ref('stg_games') }}
+    from {{ ref('raw_games') }}
 ),
 cleaned_languages as (
     select
@@ -14,6 +14,8 @@ cleaned_languages as (
 
 select distinct
     app_id,
-    md5(lower(language_name)) as language_id
+    languages.language_id
 from cleaned_languages
-where language_name <> ''
+join {{ ref('stg_languages') }} as languages
+    on lower(languages.language_name) = lower(cleaned_languages.language_name)
+where cleaned_languages.language_name != ''

@@ -1,11 +1,10 @@
 with values as (
     select trim(category_name) as category_name
-    from {{ ref('stg_games') }}
+    from {{ ref('raw_games') }}
     cross join lateral regexp_split_to_table(coalesce(categories, ''), '\s*,\s*') as category_name
 )
 
 select
-    md5(lower(category_name)) as category_id,
     category_name
 from values
 where category_name <> ''

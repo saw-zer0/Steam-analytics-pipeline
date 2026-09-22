@@ -1,0 +1,229 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Calendar dimension generated from 1960-01-01 through the current date.
+    columns:
+      - name: date_key
+        data_tests: [not_null, unique]
+      - name: full_date
+        data_tests: [not_null, unique]
+      - name: year
+        data_tests: [not_null]
+      - name: decade
+        data_tests: [not_null]
+      - name: quarter
+        data_tests: [not_null]
+      - name: month
+        data_tests: [not_null]
+      - name: month_name
+        data_tests: [not_null]
+      - name: week
+        data_tests: [not_null]
+      - name: day_name
+        data_tests: [not_null]
+
+  - name: dim_game
+    description: Descriptive game dimension.
+    columns:
+      - name: game_sk
+        data_tests: [not_null, unique]
+      - name: app_id
+        data_tests: [not_null, unique]
+      - name: date_key
+        data_tests:
+          - relationships:
+              arguments: {to: ref('dim_date'), field: date_key}
+
+  - name: dim_estimated_owners
+    description: Estimated owner range dimension.
+    columns:
+      - name: estimated_owners_sk
+        data_tests: [not_null, unique]
+      - name: estimated_owners_id
+        data_tests: [not_null, unique]
+      - name: estimated_owners
+        data_tests: [not_null]
+      - name: min_owners
+        data_tests: [not_null]
+      - name: max_owners
+        data_tests: [not_null]
+      - name: estimated_owners_label
+        data_tests: [not_null]
+
+  - name: dim_language
+    description: Language dimension.
+    columns:
+      - name: language_sk
+        data_tests: [not_null, unique]
+      - name: language_id
+        data_tests: [not_null, unique]
+      - name: language_name
+        data_tests: [not_null]
+
+  - name: dim_developer
+    description: Developer dimension.
+    columns:
+      - name: developer_sk
+        data_tests: [not_null, unique]
+      - name: developer_id
+        data_tests: [not_null, unique]
+      - name: developer_name
+        data_tests: [not_null]
+
+  - name: dim_publisher
+    description: Publisher dimension.
+    columns:
+      - name: publisher_sk
+        data_tests: [not_null, unique]
+      - name: publisher_id
+        data_tests: [not_null, unique]
+      - name: publisher_name
+        data_tests: [not_null]
+
+  - name: dim_category
+    description: Category dimension.
+    columns:
+      - name: category_sk
+        data_tests: [not_null, unique]
+      - name: category_id
+        data_tests: [not_null, unique]
+      - name: category_name
+        data_tests: [not_null]
+
+  - name: dim_genre
+    description: Genre dimension.
+    columns:
+      - name: genre_sk
+        data_tests: [not_null, unique]
+      - name: genre_id
+        data_tests: [not_null, unique]
+      - name: genre_name
+        data_tests: [not_null]
+
+  - name: dim_tag
+    description: Tag dimension.
+    columns:
+      - name: tag_sk
+        data_tests: [not_null, unique]
+      - name: tag_id
+        data_tests: [not_null, unique]
+      - name: tag_name
+        data_tests: [not_null]
+
+  - name: fct_game_metrics
+    description: Current game metrics snapshot, one row per game and snapshot date.
+    columns:
+      - name: game_metrics_sk
+        data_tests: [not_null, unique]
+      - name: snapshot_date
+        data_tests: [not_null]
+      - name: game_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_game'), field: game_sk}
+      - name: estimated_owners_sk
+        data_tests:
+          - relationships:
+              arguments: {to: ref('dim_estimated_owners'), field: estimated_owners_sk}
+      - name: app_id
+        data_tests: [not_null]
+
+  - name: bridge_game_supported_language
+    description: Bridge between games and supported languages.
+    columns:
+      - name: game_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_game'), field: game_sk}
+      - name: language_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_language'), field: language_sk}
+
+  - name: bridge_game_full_audio_language
+    description: Bridge between games and full-audio languages.
+    columns:
+      - name: game_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_game'), field: game_sk}
+      - name: language_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_language'), field: language_sk}
+
+  - name: bridge_game_developer
+    description: Bridge between games and developers.
+    columns:
+      - name: game_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_game'), field: game_sk}
+      - name: developer_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_developer'), field: developer_sk}
+
+  - name: bridge_game_publisher
+    description: Bridge between games and publishers.
+    columns:
+      - name: game_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_game'), field: game_sk}
+      - name: publisher_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_publisher'), field: publisher_sk}
+
+  - name: bridge_game_category
+    description: Bridge between games and categories.
+    columns:
+      - name: game_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_game'), field: game_sk}
+      - name: category_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_category'), field: category_sk}
+
+  - name: bridge_game_genre
+    description: Bridge between games and genres.
+    columns:
+      - name: game_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_game'), field: game_sk}
+      - name: genre_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_genre'), field: genre_sk}
+
+  - name: bridge_game_tag
+    description: Bridge between games and tags.
+    columns:
+      - name: game_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_game'), field: game_sk}
+      - name: tag_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_tag'), field: tag_sk}

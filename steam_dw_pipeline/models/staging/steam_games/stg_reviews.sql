@@ -2,7 +2,7 @@ with source_reviews as (
     select
         app_id,
         nullif(trim(reviews), '') as reviews
-    from {{ ref('stg_games') }}
+    from {{ ref('raw_games') }}
 ),
 parsed_reviews as (
     select
@@ -38,9 +38,6 @@ unparsed_reviews as (
 )
 
 select
-    md5(
-        app_id::text || ':' || review_ordinal::text || ':' || review_text
-    ) as review_id,
     app_id,
     review_ordinal,
     review_text,
@@ -51,9 +48,6 @@ from parsed_reviews
 union all
 
 select
-    md5(
-        app_id::text || ':' || review_ordinal::text || ':' || review_text
-    ) as review_id,
     app_id,
     review_ordinal,
     review_text,
