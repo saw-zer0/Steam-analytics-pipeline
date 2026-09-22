@@ -1,0 +1,23 @@
+[project]
+name = "steam-analytics-pipeline"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "sanil shakya", email = "sanilshakya9@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "dbt-core>=1.12.5",
+    "dbt-postgres>=1.11.0",
+    "pandas>=3.0.6",
+    "psycopg2-binary>=2.9.13",
+    "python-dotenv>=1.2.3",
+]
+
+[project.scripts]
+steam-analytics-pipeline = "steam_analytics_pipeline:main"
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"

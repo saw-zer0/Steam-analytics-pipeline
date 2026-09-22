@@ -1,0 +1,199 @@
+version: 2
+
+models:
+  - name: stg_games
+    description: Normalized game-level records from the raw Steam games table.
+    columns:
+      - name: app_id
+        description: Steam application identifier.
+        data_tests:
+          - not_null
+          - unique
+
+  - name: stg_languages
+    description: Deduplicated language entities from supported and full-audio language lists.
+    columns:
+      - name: language_id
+        data_tests:
+          - not_null
+          - unique
+      - name: language_name
+        data_tests:
+          - not_null
+
+  - name: stg_game_supported_languages
+    description: Bridge between games and languages supported by the game.
+    columns:
+      - name: app_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_games')
+                field: app_id
+      - name: language_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_languages')
+                field: language_id
+
+  - name: stg_game_full_audio_languages
+    description: Bridge between games and languages with full audio support.
+    columns:
+      - name: app_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_games')
+                field: app_id
+      - name: language_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_languages')
+                field: language_id
+
+  - name: stg_developers
+    description: Deduplicated developer entities.
+    columns:
+      - name: developer_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: stg_game_developers
+    description: Bridge between games and developers.
+    columns:
+      - name: app_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_games')
+                field: app_id
+      - name: developer_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_developers')
+                field: developer_id
+
+  - name: stg_publishers
+    description: Deduplicated publisher entities.
+    columns:
+      - name: publisher_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: stg_game_publishers
+    description: Bridge between games and publishers.
+    columns:
+      - name: app_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_games')
+                field: app_id
+      - name: publisher_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_publishers')
+                field: publisher_id
+
+  - name: stg_categories
+    description: Deduplicated game category entities.
+    columns:
+      - name: category_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: stg_game_categories
+    description: Bridge between games and categories.
+    columns:
+      - name: app_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_games')
+                field: app_id
+      - name: category_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_categories')
+                field: category_id
+
+  - name: stg_genres
+    description: Deduplicated game genre entities.
+    columns:
+      - name: genre_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: stg_game_genres
+    description: Bridge between games and genres.
+    columns:
+      - name: app_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_games')
+                field: app_id
+      - name: genre_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_genres')
+                field: genre_id
+
+  - name: stg_tags
+    description: Deduplicated game tag entities.
+    columns:
+      - name: tag_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: stg_game_tags
+    description: Bridge between games and tags.
+    columns:
+      - name: app_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_games')
+                field: app_id
+      - name: tag_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_tags')
+                field: tag_id
+
+  - name: stg_reviews
+    description: Best-effort one-to-many review rows parsed from concatenated source text.
+    columns:
+      - name: review_id
+        data_tests:
+          - not_null
+          - unique
+      - name: app_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_games')
+                field: app_id
+      - name: review_ordinal
+        data_tests:
+          - not_null
+      - name: review_text
+        data_tests:
+          - not_null

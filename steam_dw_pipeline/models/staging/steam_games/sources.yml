@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: steam
+    schema: public
+    tables:
+      - name: steam_games
+        description: Raw Steam game records loaded by the Python extractor.
+        columns:
+          - name: app_id
+            description: Steam application identifier.
+            data_tests:
+              - not_null
+              - unique
