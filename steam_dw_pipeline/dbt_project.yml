@@ -32,11 +32,12 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   steam_dw_pipeline:
     # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
+
     staging:
+      +schema: staging
       +materialized: table
       +post-hook: "{{ apply_staging_identity() }}"
     marts:
+      +schema: marts
       +materialized: table
       +post-hook: "{{ apply_mart_constraints() }}"
