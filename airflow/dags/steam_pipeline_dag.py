@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
-from cosmos import DbtTaskGroup, ExecutionConfig, ProfileConfig, ProjectConfig
+from cosmos import DbtTaskGroup, ExecutionConfig, ProfileConfig, ProjectConfig, RenderConfig
+from cosmos.constants import TestBehavior
 from cosmos.profiles import PostgresUserPasswordProfileMapping
 
 from elt.extract import load_csv_in_batches
@@ -42,6 +43,7 @@ with DAG(
 			),
 		),
 		execution_config=ExecutionConfig(dbt_executable_path="dbt"),
+		render_config=RenderConfig(test_behavior=TestBehavior.AFTER_ALL),
 		operator_args={"install_deps": False},
 	)
 
